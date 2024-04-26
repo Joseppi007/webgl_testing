@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en-US">
   <head>
-    <title>WebGL Test 0</title>
+    <title>WebGL Test 1</title>
     <style>
       #cnv {
 	  position: fixed;
@@ -22,11 +22,13 @@
   <body>
     <canvas id="cnv" width="192" height="108"></canvas>
     <div class="kow">
-      <h1>WebGL Testing</h1>
+      <h1>Title Here</h1>
       <hr/>
       <p>
-	This is test number one.
+	This is not <a href="https://zombo.com/">zombo.com</a>.
       </p>
+      <input type="range" id="modulo" min="5" max="200" value="50"/><label>Modulo</label><br/>
+      <input type="range" id="circSize" min="5" max="3000" value="100"/><label>Circle Size</label>
     </div>
     <script>
       cnv.width = window.innerWidth;
@@ -43,6 +45,8 @@
 precision highp float;\
 uniform highp vec2 uResolution;\
 uniform highp float uTime;\
+uniform highp float uModulo;\
+uniform highp float uCircSize;\
 \
 void main() {\
     vec2 pos = gl_FragCoord.xy / uResolution.xy;\
@@ -53,9 +57,9 @@ void main() {\
     if (uResolution.x < uResolution.y) {\
         pos = vec2(pos.x, pos.y * uResolution.y / uResolution.x);\
     }\
-    float d = sqrt(pos.x * pos.x + pos.y * pos.y);\
+    float d = sqrt(pow(mod(pos.x + uModulo/2.0, uModulo) - uModulo/2.0, 2.0) + pow(mod(pos.y + uModulo/2.0, uModulo) - uModulo/2.0, 2.0));\
     float t = uTime;\
-    if ( mod(d, 0.1) <= 0.05 ) {\
+    if ( mod(d, uCircSize) <= uCircSize/2.0 ) {\
         float t = t - 10.0 * d;\
         gl_FragColor = vec4((1.0-sin(t/5.0))/2.0, (sin(t/2.0)+1.0)/2.0, (sin(t/11.0)+1.0)/2.0, 1.0);\
     } else {\
@@ -80,6 +84,10 @@ void main() {\
       ctx.uniform2f(uResolution, ctx.canvas.width, ctx.canvas.height);
       uTime = ctx.getUniformLocation(program, "uTime");
       ctx.uniform1f(uTime, frame/24);
+      uModulo = ctx.getUniformLocation(program, "uModulo");
+      ctx.uniform1f(uModulo, modulo.value / 100);
+      uCircSize = ctx.getUniformLocation(program, "uCircSize");
+      ctx.uniform1f(uCircSize, circSize.value / 1000);
 
       const vertexBuffer = ctx.createBuffer();
       ctx.bindBuffer(ctx.ARRAY_BUFFER, vertexBuffer);
@@ -101,6 +109,8 @@ void main() {\
 	  ctx.viewport(0, 0, cnv.width, cnv.height);
           ctx.uniform2f(uResolution, cnv.width, cnv.height);
           ctx.uniform1f(uTime, frame/24);
+          ctx.uniform1f(uModulo, modulo.value / 100);
+          ctx.uniform1f(uCircSize, circSize.value / 1000);
           ctx.drawArrays(ctx.TRIANGLE_STRIP, 0, 4);
       }, 1000 / 24);
 
